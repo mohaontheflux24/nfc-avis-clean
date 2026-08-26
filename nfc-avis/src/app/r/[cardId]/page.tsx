@@ -4,19 +4,15 @@ import ReviewFlow from "./review-flow";
 
 export const dynamic = "force-dynamic";
 
-export default async function CardPage({
-  params,
-}: {
-  params: { cardId: string };
-}) {
+export default async function CardPage({ params }: { params: { cardId: string } }) {
   const card = await prisma.nfcCard.findUnique({
     where: { cardId: params.cardId },
-    include: { merchant: true },
+    include: { merchant: { include: { subscription: true } } },
   });
 
   if (!card) notFound();
-
   const { merchant } = card;
+  if (!merchant.active && !merchant.keepPublicPageWhenInactive) notFound();
 
   return (
     <ReviewFlow
