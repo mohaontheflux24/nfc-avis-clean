@@ -20,7 +20,7 @@
     "bcryptjs": "^2.4.3",
     "framer-motion": "^11.5.6",
     "recharts": "^2.12.7",
-    "nodemailer": "^6.9.15",
+    "nodemailer": "^7.0.7",
     "zod": "^3.23.8",
     "clsx": "^2.1.1",
     "nanoid": "^5.0.7",
