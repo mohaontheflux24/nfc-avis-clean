@@ -12,6 +12,13 @@ enum Role {
   MERCHANT
 }
 
+enum SubscriptionStatus {
+  TRIAL
+  ACTIVE
+  PAST_DUE
+  CANCELED
+}
+
 model User {
   id         String    @id @default(cuid())
   email      String    @unique
@@ -23,23 +30,40 @@ model User {
 }
 
 model Merchant {
-  id              String   @id @default(cuid())
-  slug            String   @unique
-  name            String
-  logoUrl         String?
-  googleReviewUrl String?
-  whatsappNumber  String?
-  contactEmail    String?
-  primaryColor    String   @default("#14141c")
-  accentColor     String   @default("#c9a15a")
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id                         String   @id @default(cuid())
+  slug                       String   @unique
+  name                       String
+  logoUrl                    String?
+  googleReviewUrl            String?
+  whatsappNumber             String?
+  contactEmail               String?
+  primaryColor               String   @default("#14141c")
+  accentColor                String   @default("#c9a15a")
+  active                     Boolean  @default(true)
+  keepPublicPageWhenInactive Boolean  @default(true)
+  merchantCanEditName        Boolean  @default(false)
+  createdAt                  DateTime @default(now())
+  updatedAt                  DateTime @updatedAt
 
-  user     User?
-  cards    NfcCard[]
-  scans    ScanEvent[]
-  reviews  Review[]
-  clicks   GoogleClickEvent[]
+  user         User?
+  cards        NfcCard[]
+  scans        ScanEvent[]
+  reviews      Review[]
+  clicks       GoogleClickEvent[]
+  subscription Subscription?
+}
+
+model Subscription {
+  id         String             @id @default(cuid())
+  merchantId String             @unique
+  merchant   Merchant           @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  plan       String             @default("starter")
+  status     SubscriptionStatus @default(TRIAL)
+  startsAt   DateTime           @default(now())
+  endsAt     DateTime?
+  trialEndsAt DateTime?
+  createdAt  DateTime           @default(now())
+  updatedAt  DateTime           @updatedAt
 }
 
 model NfcCard {
