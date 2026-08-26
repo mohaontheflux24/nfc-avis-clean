@@ -1,0 +1,100 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  MERCHANT
+}
+
+model User {
+  id         String    @id @default(cuid())
+  email      String    @unique
+  password   String
+  role       Role      @default(MERCHANT)
+  merchantId String?   @unique
+  merchant   Merchant? @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  createdAt  DateTime  @default(now())
+}
+
+model Merchant {
+  id              String   @id @default(cuid())
+  slug            String   @unique
+  name            String
+  logoUrl         String?
+  googleReviewUrl String?
+  whatsappNumber  String?
+  contactEmail    String?
+  primaryColor    String   @default("#14141c")
+  accentColor     String   @default("#c9a15a")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  user     User?
+  cards    NfcCard[]
+  scans    ScanEvent[]
+  reviews  Review[]
+  clicks   GoogleClickEvent[]
+}
+
+model NfcCard {
+  id         String   @id @default(cuid())
+  cardId     String   @unique
+  label      String   @default("Carte NFC")
+  merchantId String
+  merchant   Merchant @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+
+  scans   ScanEvent[]
+  reviews Review[]
+
+  @@index([merchantId])
+}
+
+model ScanEvent {
+  id         String   @id @default(cuid())
+  merchantId String
+  merchant   Merchant @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  cardId     String
+  card       NfcCard  @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+
+  @@index([merchantId, createdAt])
+  @@index([cardId, createdAt])
+}
+
+model Review {
+  id               String   @id @default(cuid())
+  merchantId       String
+  merchant         Merchant @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  cardId           String?
+  card             NfcCard? @relation(fields: [cardId], references: [id], onDelete: SetNull)
+  rating           Int
+  isPrivate        Boolean  @default(false)
+  firstName        String?
+  comment          String?
+  phone            String?
+  notifiedEmail    Boolean  @default(false)
+  notifiedWhatsapp Boolean  @default(false)
+  createdAt        DateTime @default(now())
+
+  clicks GoogleClickEvent[]
+
+  @@index([merchantId, createdAt])
+}
+
+model GoogleClickEvent {
+  id         String   @id @default(cuid())
+  merchantId String
+  merchant   Merchant @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  reviewId   String?
+  review     Review?  @relation(fields: [reviewId], references: [id], onDelete: SetNull)
+  createdAt  DateTime @default(now())
+
+  @@index([merchantId, createdAt])
+}
