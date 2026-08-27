@@ -4,12 +4,11 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { isSubscriptionUsable } from "@/lib/subscription";
 import Sidebar from "@/components/Sidebar";
-import { LayoutDashboard, MessageSquareText, Settings } from "lucide-react";
 
 const items = [
-  { href: "/dashboard", label: "Aperçu", icon: LayoutDashboard },
-  { href: "/dashboard/reviews", label: "Avis reçus", icon: MessageSquareText },
-  { href: "/dashboard/settings", label: "Paramètres", icon: Settings },
+  { href: "/dashboard", label: "Aperçu", icon: "LayoutDashboard" as const },
+  { href: "/dashboard/reviews", label: "Avis reçus", icon: "MessageSquareText" as const },
+  { href: "/dashboard/settings", label: "Paramètres", icon: "Settings" as const },
 ];
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
