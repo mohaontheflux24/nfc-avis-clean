@@ -2,10 +2,9 @@ import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { authOptions } from "@/lib/auth";
 import Sidebar from "@/components/Sidebar";
-import { Building2, LayoutDashboard } from "lucide-react";
 
 const items = [
-  { href: "/admin", label: "Commerces", icon: Building2 },
+  { href: "/admin", label: "Commerces", icon: "Building2" as const },
 ];
 
 export default async function AdminLayout({
