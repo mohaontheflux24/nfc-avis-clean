@@ -3,10 +3,25 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
-import { LogOut } from "lucide-react";
+import { Building2, LayoutDashboard, LogOut, MessageSquareText, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-export default function Sidebar({ items, title, subtitle }: { items: Array<{ href: string; label: string; icon: any }>; title: string; subtitle: string }) {
+const icons = {
+  Building2,
+  LayoutDashboard,
+  MessageSquareText,
+  Settings,
+};
+
+type IconName = keyof typeof icons;
+
+type SidebarItem = {
+  href: string;
+  label: string;
+  icon: IconName;
+};
+
+export default function Sidebar({ items, title, subtitle }: { items: SidebarItem[]; title: string; subtitle: string }) {
   const pathname = usePathname();
   return (
     <aside className="hidden w-64 shrink-0 border-r border-black/5 bg-white p-5 md:block">
@@ -16,7 +31,7 @@ export default function Sidebar({ items, title, subtitle }: { items: Array<{ hre
       </div>
       <nav className="space-y-1">
         {items.map((item) => {
-          const Icon = item.icon;
+          const Icon = icons[item.icon];
           const active = pathname === item.href || (item.href !== "/admin" && pathname.startsWith(item.href + "/"));
           return (
             <Link key={item.href} href={item.href} className={cn("flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm", active ? "bg-ink-900 text-white" : "text-slate-450 hover:bg-black/[0.03] hover:text-ink-900")}>
