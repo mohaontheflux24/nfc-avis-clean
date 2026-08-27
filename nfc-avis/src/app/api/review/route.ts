@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { allowRequest, getClientIp } from "@/lib/rate-limit";
+import { sendPrivateReviewNotifications } from "@/lib/notifications";
 
 export async function POST(req: Request) {
   const ip = getClientIp(req);
@@ -32,17 +33,43 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Le commentaire est obligatoire." }, { status: 400 });
   }
 
+  const firstName = body.firstName ? String(body.firstName).trim().slice(0, 80) : null;
+  const comment = body.comment ? String(body.comment).trim().slice(0, 2000) : null;
+  const phone = body.phone ? String(body.phone).trim().slice(0, 40) : null;
+
   const review = await prisma.review.create({
     data: {
       merchantId: card.merchantId,
       cardId: card.id,
       rating,
       isPrivate,
-      firstName: body.firstName ? String(body.firstName).trim().slice(0, 80) : null,
-      comment: body.comment ? String(body.comment).trim().slice(0, 2000) : null,
-      phone: body.phone ? String(body.phone).trim().slice(0, 40) : null,
+      firstName,
+      comment,
+      phone,
     },
   });
+
+  if (isPrivate) {
+    const notified = await sendPrivateReviewNotifications({
+      merchantName: card.merchant.name,
+      email: card.merchant.contactEmail,
+      whatsapp: card.merchant.whatsappNumber,
+      rating,
+      firstName,
+      comment,
+      phone,
+    });
+
+    if (notified.email || notified.whatsapp) {
+      await prisma.review.update({
+        where: { id: review.id },
+        data: {
+          notifiedEmail: notified.email,
+          notifiedWhatsapp: notified.whatsapp,
+        },
+      });
+    }
+  }
 
   return NextResponse.json({ reviewId: review.id, isPrivate });
 }
