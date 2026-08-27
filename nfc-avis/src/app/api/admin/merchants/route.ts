@@ -11,11 +11,22 @@ async function requireAdmin() {
   return session?.user?.role === "ADMIN" ? session : null;
 }
 
+const safeUserSelect = {
+  id: true,
+  email: true,
+  role: true,
+  createdAt: true,
+} as const;
+
 export async function GET() {
   if (!(await requireAdmin())) return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
   const merchants = await prisma.merchant.findMany({
     orderBy: { createdAt: "desc" },
-    include: { user: true, subscription: true, _count: { select: { scans: true, reviews: true, clicks: true, cards: true } } },
+    include: {
+      user: { select: safeUserSelect },
+      subscription: true,
+      _count: { select: { scans: true, reviews: true, clicks: true, cards: true } },
+    },
   });
   return NextResponse.json({ merchants });
 }
@@ -74,5 +85,13 @@ export async function POST(req: Request) {
     return created;
   });
 
-  return NextResponse.json({ merchant, temporaryPassword, publicPath: `/r/${slug}` }, { status: 201 });
+  return NextResponse.json(
+    {
+      merchant,
+      temporaryPassword,
+      credentials: { email, temporaryPassword },
+      publicPath: `/r/${slug}`,
+    },
+    { status: 201 }
+  );
 }
