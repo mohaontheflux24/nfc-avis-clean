@@ -7,6 +7,7 @@ import { ArrowLeft, Copy, KeyRound, Plus, Trash2 } from "lucide-react";
 import SettingsForm from "@/components/SettingsForm";
 import StatCard from "@/components/StatCard";
 import ReviewsTable from "@/components/ReviewsTable";
+import SubscriptionManager from "@/components/SubscriptionManager";
 
 export default function AdminMerchantDetail() {
   const params = useParams<{ id: string }>();
@@ -125,6 +126,14 @@ export default function AdminMerchantDetail() {
           </div>
         )}
         {passwordError && <p className="mt-3 text-sm text-danger">{passwordError}</p>}
+      </div>
+
+      <div className="mb-6">
+        <SubscriptionManager
+          merchantId={params.id}
+          initial={merchant.subscription}
+          onUpdated={(subscription) => setMerchant((m: any) => ({ ...m, subscription }))}
+        />
       </div>
 
       {stats && (
