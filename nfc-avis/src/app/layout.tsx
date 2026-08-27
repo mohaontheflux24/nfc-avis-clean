@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Fraunces, Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import Providers from "./providers";
+import LegalFooter from "@/components/LegalFooter";
 
 const fraunces = Fraunces({
   subsets: ["latin"],
@@ -44,6 +45,7 @@ export default function RootLayout({
     <html lang="fr" className={`${fraunces.variable} ${inter.variable} ${jetbrains.variable}`}>
       <body className="font-sans bg-paper text-ink-900 antialiased">
         <Providers>{children}</Providers>
+        <LegalFooter />
       </body>
     </html>
   );
