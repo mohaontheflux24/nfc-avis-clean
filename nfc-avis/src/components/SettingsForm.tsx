@@ -11,7 +11,7 @@ export default function SettingsForm({ initial }: { initial: any }) {
     setStatus("Enregistrement…");
     try {
       const res = await fetch("/api/dashboard/settings", {
-        method: "PUT",
+        method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
       });
