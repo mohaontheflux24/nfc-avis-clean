@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import StarRating from "@/components/StarRating";
@@ -143,7 +144,7 @@ export default function ReviewFlow({
           </AnimatePresence>
         </div>
 
-        <p className="mt-8 text-center font-sans text-xs text-slate-450/80">Avis sécurisé · propulsé par votre système d&apos;avis NFC</p>
+        <p className="mt-8 text-center font-sans text-xs text-slate-450/80">Avis sécurisé · <Link href="/confidentialite" className="underline underline-offset-2">Confidentialité</Link></p>
       </div>
     </main>
   );
@@ -180,6 +181,7 @@ function FeedbackForm({ cardId, rating, accentColor, onSubmitted }: { cardId: st
       <div><label className="mb-1.5 block font-sans text-sm font-medium text-ink-800">Prénom <span className="text-slate-450">(facultatif)</span></label><input value={firstName} onChange={(e) => setFirstName(e.target.value)} className="input-field" placeholder="Votre prénom" maxLength={80} /></div>
       <div><label className="mb-1.5 block font-sans text-sm font-medium text-ink-800">Qu&apos;est-ce qui s&apos;est mal passé ?</label><textarea value={comment} onChange={(e) => setComment(e.target.value)} className="input-field min-h-[120px] resize-none" placeholder="Décrivez-nous votre expérience…" maxLength={2000} /></div>
       <div><label className="mb-1.5 block font-sans text-sm font-medium text-ink-800">Numéro de téléphone <span className="text-slate-450">(facultatif)</span></label><input value={phone} onChange={(e) => setPhone(e.target.value)} type="tel" className="input-field" placeholder="Pour que l'on puisse vous rappeler" maxLength={40} /></div>
+      <p className="font-sans text-xs leading-5 text-slate-450">En envoyant ce retour, vous acceptez sa transmission au commerce concerné. Le prénom et le téléphone sont facultatifs. <Link href="/confidentialite" className="underline underline-offset-2">Voir la politique de confidentialité</Link>.</p>
       {error && <p className="font-sans text-sm text-danger">{error}</p>}
       <button type="submit" disabled={submitting} className="btn-primary mt-1 w-full">{submitting ? "Envoi…" : "Envoyer mon retour"}</button>
     </motion.form>
