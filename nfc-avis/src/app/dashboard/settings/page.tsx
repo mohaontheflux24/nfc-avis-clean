@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import SettingsForm from "@/components/SettingsForm";
+import ChangePasswordForm from "@/components/ChangePasswordForm";
 import { Copy } from "lucide-react";
 
 export default function DashboardSettings() {
@@ -20,7 +21,7 @@ export default function DashboardSettings() {
       <div className="mb-7">
         <h1 className="font-display text-[26px] font-medium text-ink-900">Paramètres</h1>
         <p className="font-sans text-sm text-slate-450">
-          Personnalisez votre page d&apos;avis et vos canaux de notification.
+          Personnalisez votre page d&apos;avis, vos notifications et la sécurité de votre compte.
         </p>
       </div>
 
@@ -39,6 +40,8 @@ export default function DashboardSettings() {
               accentColor: merchant.accentColor,
             }}
           />
+
+          <ChangePasswordForm />
 
           <div className="card-surface p-6">
             <p className="mb-1 font-sans text-sm font-medium text-ink-800">Mes cartes NFC</p>
