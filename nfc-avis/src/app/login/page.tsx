@@ -1,7 +1,7 @@
 "use client";
 
 import { FormEvent, useState } from "react";
-import { signIn } from "next-auth/react";
+import { getSession, signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
@@ -15,17 +15,32 @@ export default function LoginPage() {
     e.preventDefault();
     setError("");
     setLoading(true);
+
     const res = await signIn("credentials", {
       email,
       password,
       redirect: false,
     });
-    setLoading(false);
+
     if (!res || res.error) {
+      setLoading(false);
       setError("Identifiants incorrects ou base de données non configurée.");
       return;
     }
-    router.push("/dashboard");
+
+    const session = await getSession();
+    const role = (session?.user as any)?.role;
+
+    if (role === "ADMIN") {
+      router.replace("/admin");
+    } else if (role === "MERCHANT") {
+      router.replace("/dashboard");
+    } else {
+      setLoading(false);
+      setError("Connexion réussie, mais le rôle du compte est invalide.");
+      return;
+    }
+
     router.refresh();
   }
 
