@@ -1,15 +1,26 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { allowRequest, getClientIp } from "@/lib/rate-limit";
 
 export async function POST(req: Request) {
+  const ip = getClientIp(req);
+  if (!allowRequest(`review:${ip}`, 12, 10 * 60_000)) {
+    return NextResponse.json({ error: "Trop de tentatives, réessaie plus tard." }, { status: 429 });
+  }
+
   const body = await req.json();
   const rating = Number(body.rating);
   if (!Number.isInteger(rating) || rating < 1 || rating > 5) {
     return NextResponse.json({ error: "Note invalide" }, { status: 400 });
   }
 
+  const normalizedCardId = String(body.cardId || "");
+  if (!allowRequest(`review-card:${ip}:${normalizedCardId}`, 5, 10 * 60_000)) {
+    return NextResponse.json({ error: "Trop d'avis envoyés pour cette carte." }, { status: 429 });
+  }
+
   const card = await prisma.nfcCard.findUnique({
-    where: { cardId: String(body.cardId || "") },
+    where: { cardId: normalizedCardId },
     include: { merchant: true },
   });
   if (!card || (!card.merchant.active && !card.merchant.keepPublicPageWhenInactive)) {
