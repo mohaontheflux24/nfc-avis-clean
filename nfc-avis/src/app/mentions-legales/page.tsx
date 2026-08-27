@@ -9,10 +9,22 @@ export default function LegalNoticePage() {
         <h1 className="mt-2 font-display text-3xl font-medium text-ink-900">Mentions légales</h1>
 
         <div className="mt-8 space-y-7 text-sm leading-7 text-ink-800">
-          <section><h2 className="font-display text-xl font-medium text-ink-900">Éditeur du service</h2><p className="mt-2">Service : {legalInfo.serviceName}<br />Exploitant : {legalInfo.operatorName}<br />Forme juridique : {legalInfo.legalForm}<br />Numéro d&apos;entreprise : {legalInfo.companyNumber}<br />TVA : {legalInfo.vatNumber}<br />Adresse : {legalInfo.address}<br />E-mail : {legalInfo.email}</p></section>
-          <section><h2 className="font-display text-xl font-medium text-ink-900">Hébergement</h2><p className="mt-2">L&apos;application est hébergée via {legalInfo.host}. La base de données peut être opérée par un prestataire distinct configuré par l&apos;exploitant.</p></section>
+          <section>
+            <h2 className="font-display text-xl font-medium text-ink-900">Éditeur du service</h2>
+            <p className="mt-2">
+              Service : {legalInfo.serviceName}<br />
+              Responsable : {legalInfo.operatorName}<br />
+              {legalInfo.address && <>Adresse : {legalInfo.address}<br /></>}
+              E-mail : {legalInfo.email}
+              {legalInfo.legalForm && <><br />Forme juridique : {legalInfo.legalForm}</>}
+              {legalInfo.companyNumber && <><br />Numéro d&apos;entreprise : {legalInfo.companyNumber}</>}
+              {legalInfo.vatNumber && <><br />TVA : {legalInfo.vatNumber}</>}
+            </p>
+            <p className="mt-3 text-slate-450">Le service est actuellement fourni gratuitement aux commerces. Aucun paiement n&apos;est demandé via l&apos;application.</p>
+          </section>
+          <section><h2 className="font-display text-xl font-medium text-ink-900">Hébergement</h2><p className="mt-2">L&apos;application est hébergée via {legalInfo.host}. La base de données est exploitée au moyen d&apos;un prestataire technique configuré pour le service.</p></section>
           <section><h2 className="font-display text-xl font-medium text-ink-900">Propriété intellectuelle</h2><p className="mt-2">Les éléments propres au service, son interface, ses textes, son organisation et son code restent protégés par les droits applicables. Les marques et contenus des commerçants restent la propriété de leurs titulaires respectifs.</p></section>
-          <section><h2 className="font-display text-xl font-medium text-ink-900">Responsabilité</h2><p className="mt-2">Le service fournit un outil de collecte de satisfaction et de redirection volontaire vers les plateformes d&apos;avis. Le commerçant reste responsable de l&apos;usage qu&apos;il fait du service, de ses relations clients et du respect des règles applicables aux plateformes tierces.</p></section>
+          <section><h2 className="font-display text-xl font-medium text-ink-900">Responsabilité</h2><p className="mt-2">Le service fournit un outil de collecte de satisfaction et d&apos;accès volontaire aux plateformes d&apos;avis. Le commerçant reste responsable de ses relations clients et du respect des règles applicables aux plateformes tierces.</p></section>
         </div>
 
         <div className="mt-10 flex flex-wrap gap-4 border-t border-black/5 pt-6 text-sm">
