@@ -12,7 +12,11 @@ export async function GET(_: Request, { params }: { params: { id: string } }) {
   if (!(await isAdmin())) return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
   const merchant = await prisma.merchant.findUnique({
     where: { id: params.id },
-    include: { user: true, cards: true, subscription: true },
+    include: {
+      user: { select: { id: true, email: true, role: true, createdAt: true } },
+      cards: true,
+      subscription: true,
+    },
   });
   if (!merchant) return NextResponse.json({ error: "Commerce introuvable" }, { status: 404 });
   const [scans, reviewsCount, clicks, privateCount, ratingAgg, recentReviews] = await Promise.all([
