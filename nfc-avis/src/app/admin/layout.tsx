@@ -5,6 +5,7 @@ import Sidebar from "@/components/Sidebar";
 
 const items = [
   { href: "/admin", label: "Commerces", icon: "Building2" as const },
+  { href: "/admin/comptabilite", label: "Comptabilité", icon: "BarChart3" as const },
 ];
 
 export default async function AdminLayout({
