@@ -26,7 +26,6 @@ export default function ReviewFlow({
   const [step, setStep] = useState<Step>("rating");
   const [rating, setRating] = useState(0);
   const [reviewId, setReviewId] = useState<string | null>(null);
-  const [countdown, setCountdown] = useState(5);
   const scanRecorded = useRef(false);
 
   useEffect(() => {
@@ -44,6 +43,8 @@ export default function ReviewFlow({
     setStep("sending");
 
     if (value >= 4) {
+      let createdReviewId: string | null = null;
+
       try {
         const res = await fetch("/api/review", {
           method: "POST",
@@ -51,34 +52,32 @@ export default function ReviewFlow({
           body: JSON.stringify({ cardId, rating: value }),
         });
         const data = await res.json();
-        setReviewId(data.reviewId ?? null);
+        createdReviewId = data.reviewId ?? null;
+        setReviewId(createdReviewId);
       } catch {}
-      setStep("thanks-positive");
-    } else {
-      setTimeout(() => setStep("feedback-form"), 350);
+
+      if (googleReviewUrl) {
+        goToGoogle(createdReviewId);
+      } else {
+        setStep("thanks-positive");
+      }
+      return;
     }
+
+    setTimeout(() => setStep("feedback-form"), 350);
   }
 
-  function goToGoogle() {
+  function goToGoogle(reviewIdOverride?: string | null) {
     if (!googleReviewUrl) return;
+
     fetch("/api/google-click", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ cardId, reviewId }),
+      body: JSON.stringify({ cardId, reviewId: reviewIdOverride ?? reviewId }),
     }).catch(() => {});
+
     window.location.href = googleReviewUrl;
   }
-
-  useEffect(() => {
-    if (step !== "thanks-positive" || !googleReviewUrl) return;
-    if (countdown <= 0) {
-      goToGoogle();
-      return;
-    }
-    const t = setTimeout(() => setCountdown((c) => c - 1), 1000);
-    return () => clearTimeout(t);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [step, countdown, googleReviewUrl]);
 
   return (
     <main className="flex min-h-[100dvh] flex-col items-center justify-center px-5 py-10" style={{ background: `radial-gradient(120% 100% at 50% 0%, ${accentColor}14 0%, #faf8f4 55%)` }}>
@@ -119,18 +118,25 @@ export default function ReviewFlow({
                 </motion.div>
                 <div className="space-y-2">
                   <h2 className="font-display text-2xl font-medium text-ink-900">Merci infiniment !</h2>
-                  <p className="font-sans text-[15px] text-slate-450">Votre avis compte énormément pour {merchantName}.{googleReviewUrl && " Un dernier geste nous aiderait beaucoup :"}</p>
+                  <p className="font-sans text-[15px] text-slate-450">Merci pour votre retour.</p>
                 </div>
-                {googleReviewUrl && (
-                  <div className="flex w-full flex-col items-center gap-3">
-                    <button onClick={goToGoogle} className="btn-brass w-full">Laisser mon avis sur Google</button>
-                    <p className="font-sans text-xs text-slate-450">Redirection automatique dans {countdown}s</p>
-                  </div>
-                )}
               </motion.div>
             )}
 
-            {step === "feedback-form" && <FeedbackForm key="feedback-form" cardId={cardId} rating={rating} accentColor={accentColor} onSubmitted={() => setStep("thanks-negative")} />}
+            {step === "feedback-form" && (
+              <FeedbackForm
+                key="feedback-form"
+                cardId={cardId}
+                rating={rating}
+                accentColor={accentColor}
+                googleReviewUrl={googleReviewUrl}
+                onGoogleClick={() => goToGoogle()}
+                onSubmitted={(createdReviewId) => {
+                  setReviewId(createdReviewId);
+                  setStep("thanks-negative");
+                }}
+              />
+            )}
 
             {step === "thanks-negative" && (
               <motion.div key="thanks-negative" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35 }} className="flex flex-col items-center gap-5 py-4 text-center">
@@ -139,6 +145,9 @@ export default function ReviewFlow({
                 </div>
                 <h2 className="font-display text-2xl font-medium text-ink-900">Merci pour votre retour,<br /> il nous aidera à nous améliorer.</h2>
                 <p className="font-sans text-[15px] text-slate-450">Votre message a été transmis directement à {merchantName}.</p>
+                {googleReviewUrl && (
+                  <button onClick={() => goToGoogle()} className="btn-brass mt-2 w-full">Laisser aussi un avis sur Google</button>
+                )}
               </motion.div>
             )}
           </AnimatePresence>
@@ -150,7 +159,21 @@ export default function ReviewFlow({
   );
 }
 
-function FeedbackForm({ cardId, rating, accentColor, onSubmitted }: { cardId: string; rating: number; accentColor: string; onSubmitted: () => void }) {
+function FeedbackForm({
+  cardId,
+  rating,
+  accentColor,
+  googleReviewUrl,
+  onGoogleClick,
+  onSubmitted,
+}: {
+  cardId: string;
+  rating: number;
+  accentColor: string;
+  googleReviewUrl: string | null;
+  onGoogleClick: () => void;
+  onSubmitted: (reviewId: string | null) => void;
+}) {
   const [firstName, setFirstName] = useState("");
   const [comment, setComment] = useState("");
   const [phone, setPhone] = useState("");
@@ -166,9 +189,14 @@ function FeedbackForm({ cardId, rating, accentColor, onSubmitted }: { cardId: st
     setError("");
     setSubmitting(true);
     try {
-      const res = await fetch("/api/review", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ cardId, rating, firstName, comment, phone }) });
+      const res = await fetch("/api/review", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ cardId, rating, firstName, comment, phone }),
+      });
       if (!res.ok) throw new Error();
-      onSubmitted();
+      const data = await res.json().catch(() => ({}));
+      onSubmitted(data.reviewId ?? null);
     } catch {
       setError("Une erreur est survenue. Merci de réessayer.");
       setSubmitting(false);
@@ -184,6 +212,9 @@ function FeedbackForm({ cardId, rating, accentColor, onSubmitted }: { cardId: st
       <p className="font-sans text-xs leading-5 text-slate-450">En envoyant ce retour, vous acceptez sa transmission au commerce concerné. Le prénom et le téléphone sont facultatifs. <Link href="/confidentialite" className="underline underline-offset-2">Voir la politique de confidentialité</Link>.</p>
       {error && <p className="font-sans text-sm text-danger">{error}</p>}
       <button type="submit" disabled={submitting} className="btn-primary mt-1 w-full">{submitting ? "Envoi…" : "Envoyer mon retour"}</button>
+      {googleReviewUrl && (
+        <button type="button" onClick={onGoogleClick} className="btn-brass w-full">Laisser aussi un avis sur Google</button>
+      )}
     </motion.form>
   );
 }
