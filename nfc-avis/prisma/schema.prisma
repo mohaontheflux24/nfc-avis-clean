@@ -19,6 +19,22 @@ enum SubscriptionStatus {
   CANCELED
 }
 
+enum InvoiceStatus {
+  DRAFT
+  OPEN
+  PAID
+  VOID
+  UNCOLLECTIBLE
+  REFUNDED
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCEEDED
+  FAILED
+  REFUNDED
+}
+
 model User {
   id         String    @id @default(cuid())
   email      String    @unique
@@ -51,19 +67,84 @@ model Merchant {
   reviews      Review[]
   clicks       GoogleClickEvent[]
   subscription Subscription?
+  invoices     Invoice[]
+  payments     Payment[]
 }
 
 model Subscription {
-  id          String             @id @default(cuid())
-  merchantId  String             @unique
-  merchant    Merchant           @relation(fields: [merchantId], references: [id], onDelete: Cascade)
-  plan        String             @default("starter")
-  status      SubscriptionStatus @default(TRIAL)
-  startsAt    DateTime           @default(now())
-  endsAt      DateTime?
-  trialEndsAt DateTime?
-  createdAt   DateTime           @default(now())
-  updatedAt   DateTime           @updatedAt
+  id                   String             @id @default(cuid())
+  merchantId           String             @unique
+  merchant             Merchant           @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  plan                 String             @default("starter")
+  status               SubscriptionStatus @default(TRIAL)
+  stripeCustomerId     String?            @unique
+  stripeSubscriptionId String?            @unique
+  stripePriceId        String?
+  startsAt             DateTime           @default(now())
+  endsAt               DateTime?
+  trialEndsAt          DateTime?
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
+}
+
+model Invoice {
+  id              String        @id @default(cuid())
+  merchantId      String
+  merchant        Merchant      @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  stripeInvoiceId String?       @unique
+  number          String?       @unique
+  status          InvoiceStatus @default(DRAFT)
+  currency        String        @default("EUR")
+  subtotalCents   Int           @default(0)
+  vatCents        Int           @default(0)
+  totalCents      Int           @default(0)
+  peppolStatus    String?
+  peppolMessageId String?
+  issuedAt        DateTime      @default(now())
+  dueAt           DateTime?
+  paidAt          DateTime?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  payments Payment[]
+
+  @@index([merchantId, issuedAt])
+}
+
+model Payment {
+  id                    String        @id @default(cuid())
+  merchantId            String
+  merchant              Merchant      @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  invoiceId             String?
+  invoice               Invoice?      @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
+  stripePaymentIntentId String?       @unique
+  stripeChargeId        String?       @unique
+  status                PaymentStatus @default(PENDING)
+  amountCents           Int           @default(0)
+  feeCents              Int           @default(0)
+  netCents              Int           @default(0)
+  currency              String        @default("EUR")
+  paidAt                DateTime?
+  createdAt             DateTime      @default(now())
+  updatedAt             DateTime      @updatedAt
+
+  @@index([merchantId, createdAt])
+}
+
+model Expense {
+  id          String   @id @default(cuid())
+  supplier    String
+  description String
+  amountCents Int
+  vatCents    Int      @default(0)
+  currency    String   @default("EUR")
+  expenseDate DateTime @default(now())
+  receiptUrl  String?
+  category    String   @default("other")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([expenseDate])
 }
 
 model NfcCard {

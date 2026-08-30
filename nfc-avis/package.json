@@ -26,7 +26,8 @@
     "clsx": "^2.1.1",
     "nanoid": "^5.0.7",
     "date-fns": "^3.6.0",
-    "lucide-react": "^0.446.0"
+    "lucide-react": "^0.446.0",
+    "stripe": "^17.7.0"
   },
   "devDependencies": {
     "@types/node": "^20.14.15",
