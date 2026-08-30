@@ -89,10 +89,12 @@ export async function POST(req: Request) {
       let chargeId: string | undefined;
       if (event.type === "payment_intent.succeeded" && obj.latest_charge) {
         chargeId = typeof obj.latest_charge === "string" ? obj.latest_charge : obj.latest_charge.id;
-        try {
-          const charge: any = await stripe.charges.retrieve(chargeId, { expand: ["balance_transaction"] });
-          fee = typeof charge.balance_transaction === "object" ? charge.balance_transaction.fee ?? 0 : 0;
-        } catch {}
+        if (chargeId) {
+          try {
+            const charge: any = await stripe.charges.retrieve(chargeId, { expand: ["balance_transaction"] });
+            fee = typeof charge.balance_transaction === "object" ? charge.balance_transaction.fee ?? 0 : 0;
+          } catch {}
+        }
       }
       const amount = obj.amount_received ?? obj.amount ?? 0;
       await prisma.payment.upsert({
